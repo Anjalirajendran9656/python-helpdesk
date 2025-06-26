@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Helpdesk</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .question-section {
+            margin-bottom: 20px;
+        }
+
+        .section-label {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .question-input {
+            width: 100%;
+            height: 120px;
+            background-color: #000;
+            border: 2px solid #333;
+            color: #fff;
+            padding: 15px;
+            font-size: 1rem;
+            resize: vertical;
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .question-input:focus {
+            outline: none;
+            border-color: #555;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+
+        .submit-btn {
+            background-color: #fff;
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            background-color: #666;
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            color: #ffff00;
+            font-size: 0.9rem;
+            margin: 10px 0;
+            min-height: 20px;
+        }
+
+        .answer-section {
+            margin-top: 30px;
+        }
+
+        .answer-display {
+            width: 100%;
+            height: 400px;
+            background-color: #000;
+            border: 2px solid #333;
+            color: #fff;
+            padding: 15px;
+            font-size: 0.95rem;
+            resize: none;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            overflow-y: auto;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+        }
+
+        .footer a {
+            color: #00ffff;
+            text-decoration: underline;
+            font-size: 1rem;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #333;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .question-input {
+                height: 100px;
+            }
+            
+            .answer-display {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PYTHON</h1>
+        </div>
+
+        <div class="question-section">
+            <div class="section-label">Ask anything in Python:</div>
+            <textarea 
+                id="questionInput" 
+                class="question-input" 
+                placeholder="Type your Python question here..."
+            ></textarea>
+        </div>
+
+        <div class="btn-container">
+            <button id="submitBtn" class="submit-btn">Get Answer</button>
+            <div id="loadingSpinner" class="loading-spinner"></div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="answer-section">
+            <div class="section-label">Previous Questions & Answers:</div>
+            <textarea 
+                id="answerDisplay" 
+                class="answer-display" 
+                readonly
+                placeholder="Your questions and answers will appear here..."
+            ></textarea>
+        </div>
+
+        <div class="footer">
+            <p>For more details visit: <a href="https://www.w3schools.com/python/" target="_blank">W3Schools Python Tutorial</a></p>
+        </div>
+    </div>
+
+    <script>
+        class PythonHelpdesk {
+            constructor() {
+                // Replace with your actual n8n webhook URL
+                this.n8nWebhookUrl = 'https://anjali1234.app.n8n.cloud/webhook/python-helpdesk';
+                this.qaHistory = [];
+                this.initializeElements();
+                this.bindEvents();
+            }
+
+            initializeElements() {
+                this.questionInput = document.getElementById('questionInput');
+                this.submitBtn = document.getElementById('submitBtn');
+                this.answerDisplay = document.getElementById('answerDisplay');
+                this.status = document.getElementById('status');
+                this.loadingSpinner = document.getElementById('loadingSpinner');
+            }
+
+            bindEvents() {
+                this.submitBtn.addEventListener('click', () => this.processQuestion());
+                this.questionInput.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        this.processQuestion();
+                    }
+                });
+            }
+
+            async processQuestion() {
+                const question = this.questionInput.value.trim();
+                
+                if (!question) {
+                    alert('Please enter a question!');
+                    return;
+                }
+
+                this.setLoadingState(true);
+                
+                try {
+                    const answer = await this.getAIAnswer(question);
+                    this.addToHistory(question, answer);
+                    this.updateAnswerDisplay();
+                    this.questionInput.value = '';
+                } catch (error) {
+                    this.handleError(error);
+                } finally {
+                    this.setLoadingState(false);
+                }
+            }
+
+            async getAIAnswer(question) {
+                const payload = { question: question };
+                
+                const response = await fetch(this.n8nWebhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.answer || 'No answer received';
+            }
+
+            addToHistory(question, answer) {
+                this.qaHistory.push({ question, answer });
+            }
+
+            updateAnswerDisplay() {
+                let displayText = '';
+                
+                this.qaHistory.forEach((qa, index) => {
+                    displayText += `Q${index + 1}: ${qa.question}\n`;
+                    displayText += `A${index + 1}: ${qa.answer}\n`;
+                    displayText += '─'.repeat(80) + '\n\n';
+                });
+                
+                this.answerDisplay.value = displayText;
+                this.answerDisplay.scrollTop = this.answerDisplay.scrollHeight;
+            }
+
+            setLoadingState(isLoading) {
+                if (isLoading) {
+                    this.submitBtn.disabled = true;
+                    this.submitBtn.textContent = 'Getting Answer...';
+                    this.loadingSpinner.style.display = 'inline-block';
+                    this.status.textContent = 'Getting answer from AI...';
+                } else {
+                    this.submitBtn.disabled = false;
+                    this.submitBtn.textContent = 'Get Answer';
+                    this.loadingSpinner.style.display = 'none';
+                    this.status.textContent = '';
+                }
+            }
+
+            handleError(error) {
+                console.error('Error:', error);
+                alert(`Failed to get answer: ${error.message}`);
+            }
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PythonHelpdesk();
+        });
+    </script>
+</body>
+</html>
