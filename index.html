@@ -260,15 +260,16 @@
             }
 
             async getAIAnswer(question) {
-                const payload = { question: question };
-                
-                const response = await fetch(this.n8nWebhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
+                const payload = { prompt: question };
+
+const response = await fetch('https://anjali1234.app.n8n.cloud/webhook/askgpt', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
+});
+
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
