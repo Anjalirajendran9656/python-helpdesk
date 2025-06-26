@@ -260,7 +260,7 @@
             }
 
             async getAIAnswer(question) {
-                const payload = { prompt: question };
+                const payload = { question: question };
                 
                 const response = await fetch(this.n8nWebhookUrl, {
                     method: 'POST',
